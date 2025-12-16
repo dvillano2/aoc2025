@@ -1,176 +1,134 @@
-#include <ctype.h>
 #include <limits.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-struct hashing_node {
-  struct hashing_node *children[300];
-};
-
-int parse_line(char line[], int buttons[20][20], int target[20]) {
-  strtok(line, " []()");
-  char *token = strtok(NULL, " []()");
-  int row = 0;
-  while (*token != '{') {
-    char c = *token;
-    while (c != '\0') {
-      if (isdigit(c)) {
-        buttons[row][c - '0'] = 1;
+int parse_line(char line[300], int buttons[20][20], int target[20]) {
+  int button = 0;
+  const char *token = strtok(line, " []().#");
+  for (; *token != '{'; token = strtok(NULL, " []().#"), button++) {
+    int button_spot;
+    for (int i = 0;; i++) {
+      if (token[i] == ',' || token[i] == '\0') {
+        buttons[button][button_spot] = 1;
+        if (token[i] == '\0') {
+          break;
+        }
+      } else {
+        button_spot = token[i] - '0';
       }
-      token++;
-      c = *token;
     }
-    token = strtok(NULL, " []()");
-    row++;
   }
-  token++;
-
-  int val = 0;
-  int spot = 0;
-  for (; *token != '\n'; token++) {
-    if (*token == ',' || *token == '}') {
-      target[spot] = val;
-      spot++;
-      val = 0;
+  int value = 0;
+  int target_spot = 0;
+  for (int i = 1;; i++) {
+    if (token[i] == ',' || token[i] == '}') {
+      target[target_spot] = value;
+      value = 0;
+      target_spot++;
+      if (token[i] == '}') {
+        break;
+      }
     } else {
-      val = 10 * val + (*token - '0');
+      value = 10 * value + token[i] - '0';
     }
   }
-  return row;
+  return button;
 }
 
-int check(const int candidate[20], const int target[20]) {
+void make_parity_target(int parity_target[20], const int target[20]) {
   for (int i = 0; i < 20; i++) {
-    if (candidate[i] != target[i]) {
+    parity_target[i] = target[i] % 2;
+  }
+}
+
+void make_tracker(int tracker[20], int mask, int buttons[20][20],
+                  int button_count) {
+  for (int j = 0; j < button_count; j++) {
+    for (int k = 0; k < 20; k++) {
+      tracker[k] += buttons[j][k] * (mask >> j & 1);
+    }
+  }
+}
+
+int check(const int parity_target[20], const int tracker[20]) {
+  for (int j = 0; j < 20; j++) {
+    if (parity_target[j] != tracker[j] % 2) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+int get_buttons_pushed(int mask) {
+  int buttons_pushed = 0;
+  while (mask > 0) {
+    buttons_pushed += mask & 1;
+    mask >>= 1;
+  }
+  return buttons_pushed;
+}
+
+void make_new_target(const int target[20], int new_target[20],
+                     const int tracker[20]) {
+  for (int j = 0; j < 20; j++) {
+    new_target[j] = (target[j] - tracker[j]) / 2;
+  }
+}
+
+int check_neg(const int target[20]) {
+  for (int i = 0; i < 20; i++) {
+    if (target[i] < 0) {
       return 1;
     }
   }
   return 0;
 }
 
-int too_big(const int candidate[20], const int target[20]) {
+int check_zero(const int target[20]) {
+  int c = 0;
   for (int i = 0; i < 20; i++) {
-    if (candidate[i] > target[i]) {
-      return 1;
-    }
+    c += target[i];
   }
-  return 0;
+  return c;
 }
 
-void push(int candidate[20], const int buttons[20][20], const int row) {
-  for (int i = 0; i < 20; i++) {
-    candidate[i] += buttons[row][i];
-  }
-}
-
-int get_max_step(const int target[20], const int buttons[20][20],
-                 const int state[20], int row) {
-  int stepper = INT_MAX;
-  for (int i = 0; i < 20; i++) {
-    if (buttons[row][i] == 1) {
-      stepper = target[i] - state[i] < stepper ? target[i] - state[i] : stepper;
-    }
-  }
-  return stepper < INT_MAX ? stepper : 0;
-}
-
-int walk(int target[20], int buttons[20][20], int pushes, const int state[20],
-         int rows, int row) {
-  if (row >= rows) {
+int walk(int button_count, int buttons[20][20], int target[20]) {
+  if (check_neg(target) == 1) {
     return INT_MAX;
   }
-  int new_state[20] = {0};
-  int stepper = get_max_step(target, buttons, state, row);
-  // printf("stepper is %02d row is %02d our of %02d\n state is ", stepper, row,
-  //        rows);
-  // for (int j = 0; j < 20; j++) {
-  //   printf("%03d ", state[j]);
-  // }
-  // printf("\n target is");
-  // for (int j = 0; j < 20; j++) {
-  //   printf("%03d ", target[j]);
-  // }
-  // printf("\n\n ");
-
-  for (; stepper >= 0; stepper--) {
-    // int break_flag = 0;
-    for (int j = 0; j < 20; j++) {
-      new_state[j] = state[j] + stepper * buttons[row][j];
-      // if (new_state[j] > target[j]) {
-      //   break_flag = 1;
-      //   break;
-      // }
-    }
-    // if (break_flag == 1) {
-    //   continue;
-    // }
-    if (check(new_state, target) == 0) {
-      return pushes + stepper;
-    }
-    int later =
-        walk(target, buttons, pushes + stepper, new_state, rows, row + 1);
-    if (later < INT_MAX) {
-      return later;
+  if (check_zero(target) == 0) {
+    return 0;
+  }
+  int answer = INT_MAX;
+  int parity_target[20] = {0};
+  make_parity_target(parity_target, target);
+  for (int mask = 0; mask < 1 << button_count; mask++) {
+    int tracker[20] = {0};
+    make_tracker(tracker, mask, buttons, button_count);
+    int match = check(parity_target, tracker);
+    if (match == 1) {
+      int buttons_pushed = get_buttons_pushed(mask);
+      int new_target[20];
+      make_new_target(target, new_target, tracker);
+      int lower = walk(button_count, buttons, new_target);
+      if (lower != INT_MAX) {
+        int smaller = buttons_pushed + 2 * lower;
+        answer = smaller < answer ? smaller : answer;
+      }
     }
   }
-  return INT_MAX;
-}
-
-int comp_buttons(const void *a, const void *b) {
-  const int *row0 = (int *)a;
-  const int *row1 = (int *)b;
-  int r0 = 0;
-  int r1 = 0;
-  for (int i = 0; i < 20; i++) {
-    r0 += row0[i];
-    r1 += row1[i];
-  }
-  if (r0 < r1) {
-    return 1;
-  }
-  if (r0 > r1) {
-    return -1;
-  }
-  return 0;
+  return answer;
 }
 
 int main(void) {
-  FILE *fp = fopen("small_input.txt", "r");
-  int buttons[20][20];
-  int target[20];
+  FILE *fp = fopen("input.txt", "r");
   int answer = 0;
   for (char line[300]; fgets(line, 300, fp);) {
-    for (int i = 0; i < 20; i++) {
-      for (int j = 0; j < 20; j++) {
-        buttons[i][j] = 0;
-      }
-      target[i] = 0;
-    }
-    int rows = parse_line(line, buttons, target);
-    qsort(buttons, 20, sizeof(buttons[0]), comp_buttons);
-    int initial_state[20] = {0};
-    // int subanswer = walk(target, buttons, 0, initial_state, rows, 0);
-    // printf("subanswer is %d\n", subanswer);
-    // answer += subanswer;
-
-    // printf("rows: %d\n", rows);
-    // for (int i = 0; i < 20; i++) {
-    //   for (int j = 0; j < 20; j++) {
-    //     printf("%d ", buttons[i][j]);
-    //   }
-    //   printf("\n");
-    // }
-    // printf("\n");
-
-    int subanswer = walk(target, buttons, 0, initial_state, rows, 0);
+    int buttons[20][20] = {{0}};
+    int target[20] = {0};
+    int button_count = parse_line(line, buttons, target);
+    int subanswer = walk(button_count, buttons, target);
     answer += subanswer;
-    printf("subanswer is %d\n", subanswer);
-
-    // for (int i = 0; i < 20; i++) {
-    //   printf("%d ", target[i]);
-    // }
-    // printf("\n\n");
   }
   fclose(fp);
   printf("answer is %d\n", answer);
