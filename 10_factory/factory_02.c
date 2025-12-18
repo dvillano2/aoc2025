@@ -6,7 +6,7 @@ int parse_line(char line[300], int buttons[20][20], int target[20]) {
   int button = 0;
   const char *token = strtok(line, " []().#");
   for (; *token != '{'; token = strtok(NULL, " []().#"), button++) {
-    int button_spot;
+    int button_spot = 0;
     for (int i = 0;; i++) {
       if (token[i] == ',' || token[i] == '\0') {
         buttons[button][button_spot] = 1;

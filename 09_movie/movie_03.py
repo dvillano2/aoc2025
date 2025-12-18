@@ -119,7 +119,6 @@ def valid_corners(sorted_new_data, index0, index1):
                 return 0
             if "ur" not in data1[2] and "ul" not in data1[2]:
                 return 0
-            return 1 + abs(data1[1] - data0[1])
         if data0[1] > data1[1]:
             if "ur" not in data0[2] and "ul" not in data0[2]:
                 return 0
@@ -211,13 +210,42 @@ def interior_blocker_2(data0, data1, original_data):
         return False
 
 
+def minimal_interior_blocker(data0, data1, original_data_with_corners):
+    x_max = max(data0[0], data1[0])
+    x_min = min(data0[0], data1[0])
+    y_max = max(data0[1], data1[1])
+    y_min = min(data0[1], data1[1])
+    data_copy = copy.deepcopy(original_data_with_corners)
+    data_copy.append(data[0])
+    for check_0, check_1 in zip(original_data_with_corners, data_copy[1:]):
+        if check_0[0] == check_1[0]:
+            if check_0[1] > check_1[1]:
+                check_0, check_1 = check_1, check_0
+            if x_min < check_0[0] < x_max:
+                if (
+                    check_0[1] < y_min < check_1[1]
+                    or check_0[1] < y_max < check_1[1]
+                ):
+                    return True
+        if check_0[1] == check_1[1]:
+            if check_0[0] > check_1[0]:
+                check_0, check_1 = check_1, check_0
+            if y_min < check_0[1] < y_max:
+                if (
+                    check_0[0] < x_min < check_1[0]
+                    or check_0[0] < x_max < check_1[0]
+                ):
+                    return True
+        False
+
+
 def final_check(sorted_new_data, original_data):
     answer = 0
     for i, data0 in enumerate(sorted_new_data):
         for j in range(i + 1, len(sorted_new_data)):
             data1 = sorted_new_data[j]
             break_flag = 0
-            if interior_blocker_2(data0, data1, original_data):
+            if minimal_interior_blocker(data0, data1, original_data):
                 break_flag = 1
                 break
             if break_flag == 0:
