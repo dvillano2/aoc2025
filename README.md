@@ -30,7 +30,8 @@ make part day=04 part=01
 ```
 again, change the day as necessary. part should be 01 or 02. Note there is no part 2 for day 12
 
-If you'd like to run the code, you'll need to put your input files for each day in the appropriate directory with the name "input.txt"
+If you'd like to run the code, you'll need to put your input files for each day in the appropriate directory with the name "input.txt". So your input file for the fourth day should be 04_print/input.txt.
+
 Warning: day 10 part 2 will take a bit of time (20-30 seconds for me) since I implemented no caching in the search.
 
 To run everything:
