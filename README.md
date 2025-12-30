@@ -19,13 +19,13 @@ make all
 To compile a specific day run
 
 ```bash
-make day=03
+make day day=03
 ```
 chage 03 appropriately, days should be between 01 and 12
 To compile a specific part of a specific day, run
 
 ```bash
-make day=04 part=01
+make part day=04 part=01
 ```
 again, change the day as necessary. part should be 01 or 02. Note there is no part 2 for day 12
 
