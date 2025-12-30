@@ -1,4 +1,4 @@
-.PHONY: all day part
+.PHONY: all day part run run-day run-part
 
 ifneq ($(part),)
 SINGLE_PART = $(wildcard $(day)_*/*_$(part).c)
@@ -28,3 +28,27 @@ endif
 ifneq ($(PART_BINARY),)
 part: $(PART_BINARY)
 endif
+
+run: all
+	@ for bin in $(ALL_BINARIES); do \
+		srcdir=$${bin#bin/}; \
+		srcdir=$$(dirname "$$srcdir"); \
+		echo "Running $$bin"; \
+		(cd "$$srcdir" && ../"$$bin" && echo ""); \
+	done
+
+run-day: day
+	@ for bin in $(DAY_BINARIES); do \
+		srcdir=$${bin#bin/}; \
+		srcdir=$$(dirname "$$srcdir"); \
+		echo "Running $$bin"; \
+		(cd "$$srcdir" && ../"$$bin" && echo ""); \
+	done
+
+run-part: part
+	@ for bin in $(PART_BINARY); do \
+		srcdir=$${bin#bin/}; \
+		srcdir=$$(dirname "$$srcdir"); \
+		echo "Running $$bin"; \
+		(cd "$$srcdir" && ../"$$bin"); \
+	done
