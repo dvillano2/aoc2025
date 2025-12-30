@@ -55,6 +55,6 @@ int main(void) {
     count_doubles(token, &count);
     token = strtok(NULL, ",\n\0");
   }
-  printf("\n\nanswer is %ld\n", count);
+  printf("answer is %ld\n", count);
   return 0;
 }
