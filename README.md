@@ -21,7 +21,7 @@ To compile a specific day run
 ```bash
 make day day=03
 ```
-chage 03 appropriately, days should be between 01 and 12
+change 03 appropriately, days should be between 01 and 12
 To compile a specific part of a specific day, run
 
 ```bash
