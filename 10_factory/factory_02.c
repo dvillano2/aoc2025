@@ -41,7 +41,7 @@ void make_parity_target(int parity_target[20], const int target[20]) {
   }
 }
 
-void make_tracker(int tracker[20], int mask, int buttons[20][20],
+void make_tracker(int tracker[20], int mask, const int buttons[20][20],
                   int button_count) {
   for (int j = 0; j < button_count; j++) {
     for (int k = 0; k < 20; k++) {
