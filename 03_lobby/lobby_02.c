@@ -38,6 +38,6 @@ int main(void) {
     joltage += max_jolt(line);
   }
   fclose(fp);
-  printf("answer if %ld\n", joltage);
+  printf("answer is %ld\n", joltage);
   return 0;
 }
