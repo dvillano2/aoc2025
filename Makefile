@@ -50,5 +50,5 @@ run-part: part
 		srcdir=$${bin#bin/}; \
 		srcdir=$$(dirname "$$srcdir"); \
 		echo "Running $$bin"; \
-		(cd "$$srcdir" && ../"$$bin"); \
+		(cd "$$srcdir" && ../"$$bin" && echo ""); \
 	done
