@@ -3,8 +3,8 @@
 #include <string.h>
 
 int compare_ranges(const void *r0, const void *r1) {
-  const long(*range0)[2] = r0;
-  const long(*range1)[2] = r1;
+  const long (*range0)[2] = r0;
+  const long (*range1)[2] = r1;
   if ((*range0)[1] < (*range1)[1]) {
     return 1;
   }
