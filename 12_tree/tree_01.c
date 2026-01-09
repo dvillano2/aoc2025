@@ -28,6 +28,7 @@ int main(void) {
       answer++;
     }
   }
+  fclose(fp);
   printf("answer is %d\n", answer);
   return 0;
 }
